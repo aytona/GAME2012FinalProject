@@ -7,14 +7,33 @@
 #include <GL/freeglut.h>
 #include "graphicsmath.h"
 #include "transformations.h"
+#include "camera.h"
+#include "texture.h"
 
 using namespace std;
 
+struct Vertex
+{
+	Vector3f pos;
+	Vector2f uv;
+
+	Vertex(){}
+	Vertex(Vector3f _pos, Vector2f _uv)
+	{
+		pos = _pos;
+		uv = _uv;
+	}
+};
+
 GLuint VBO;
 GLuint IBO;
+GLuint gSampler;
+Texture* pTexture = NULL;
 
 //Memory position of World Matrix on the GPU
 GLuint gWorldLocation;
+
+Camera* gameCamera = NULL;
 
 const char* pVSFileName = "shader.vs";
 const char* pFSFileName = "shader.fs";
@@ -57,22 +76,28 @@ static void RenderSceneCB()
 	Rotation += 0.001f;
 
 	Transform transform;
-	transform.Scale(sinf(Scale * 0.1f), sinf(Scale * 0.1f), sinf(Scale * 0.1f));
-	transform.Position(sinf(Scale), 0.0f, 0.0f);
-	transform.Rotation(sinf(Rotation) * 90.0f, sinf(Rotation) * 90.0f, sinf(Rotation) * 90.0f);
+	transform.Position(0.f, 0.f, 5.0f);
+	transform.Rotation(0.f, 0.f, 0.f);
+	transform.SetPerspective(90.f, 1024, 768, 1.f, 1000.f);
+	transform.SetCamera(*gameCamera);
 
 	//Update world matrix value on GPU
-	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, (const GLfloat*)transform.GetWorldTransform());
+	
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, (const GLfloat*)transform.GetWorldViewProjectionTransform());
 
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
 	//Bind the Index buffer to the pipeline
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	pTexture->Bind(GL_TEXTURE0);
 	//Draw the indices
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 
 	glutSwapBuffers();
 }
@@ -171,6 +196,7 @@ static void CompileShaders()
 
 	//Allocate and get memory location of World Matrix on GPU
 	gWorldLocation = glGetUniformLocation(ShaderProgram, "gWorld");
+	gSampler = glGetUniformLocation(ShaderProgram, "gSampler");
 }
 
 static void InitializeGlutCallbacks()
@@ -181,11 +207,12 @@ static void InitializeGlutCallbacks()
 
 static void CreateVertexBuffer()
 {
-	Vector3f Vertices[4];
-	Vertices[0] = Vector3f(-1.0f, -1.0f, 0.0f);
-	Vertices[1] = Vector3f(0.0f, -1.0f, 1.0f);
-	Vertices[2] = Vector3f(1.0f, -1.0f, 0.0f);
-	Vertices[3] = Vector3f(0.0f, 1.0f, 0.0f);
+	Vertex Vertices[4] = {
+		Vertex(Vector3f(-1.f, 1.f, 0.f), Vector2f(0.5f, 0.5f)),
+		Vertex(Vector3f(1.f, 1.f, 0.f), Vector2f(0.5f, 0.f)),
+		Vertex(Vector3f(1.f, -1.f, 0.f), Vector2f(1.f, 0.f)),
+		Vertex(Vector3f(-1.f, -1.f, 0.f), Vector2f(0.5f, 1.f))
+	};
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -219,6 +246,8 @@ int main(int argc, char** argv)
 
 	InitializeGlutCallbacks();
 
+	gameCamera = new Camera(1024, 768);
+
 	// Must be done after glut is initialized!
 	GLenum res = glewInit();
 	if (res != GLEW_OK) {
@@ -227,12 +256,25 @@ int main(int argc, char** argv)
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glFrontFace(GL_CW);
+	//Cull the back face of geometry
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 
 	CreateVertexBuffer();
 
 	CreateIndexBuffer();
 
 	CompileShaders();
+
+	glUniform1i(gSampler, 0);
+
+	pTexture = new Texture(GL_TEXTURE_2D, "../Content/test.png");
+
+	if (!pTexture->Load())
+	{
+		return 1;
+	}
 
 	glutMainLoop();
 
