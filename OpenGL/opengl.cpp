@@ -94,7 +94,7 @@ static void RenderSceneCB()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	pTexture->Bind(GL_TEXTURE0);
 	//Draw the indices
-	glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -207,7 +207,7 @@ static void InitializeGlutCallbacks()
 
 static void CreateVertexBuffer()
 {
-	Vertex Vertices[8] = {
+	Vertex Vertices[17] = {
 		// Left Paddle
 		Vertex(Vector3f(-5.f, 3.f, 0.f), Vector2f(0.5f, 0.5f)),
 		Vertex(Vector3f(-4.5f, 3.f, 0.f), Vector2f(0.5f, 0.f)),
@@ -217,7 +217,17 @@ static void CreateVertexBuffer()
 		Vertex(Vector3f(5.f, -3.f, 0.f), Vector2f(0.5f, 0.5f)),
 		Vertex(Vector3f(4.5f, -3.f, 0.f), Vector2f(0.5f, 0.f)),
 		Vertex(Vector3f(5.f, -1.5f, 0.f), Vector2f(1.f, 0.f)),
-		Vertex(Vector3f(4.5f, -1.5f, 0.f), Vector2f(0.5f, 1.f))
+		Vertex(Vector3f(4.5f, -1.5f, 0.f), Vector2f(0.5f, 1.f)),
+		// Ball
+		Vertex(Vector3f(0.f, 0.f, 0.f), Vector2f(0.f, 0.f)),		// Origin
+		Vertex(Vector3f(0.f, 1.f, 0.f), Vector2f(0.f, 0.f)),		// Top 
+		Vertex(Vector3f(.7f, .7f, 0.f), Vector2f(0.f, 0.f)),		// +X +Y
+		Vertex(Vector3f(1.f, 0.f, 0.f), Vector2f(0.f, 0.f)),		// Right
+		Vertex(Vector3f(.7f, -.7f, 0.f), Vector2f(0.f, 0.f)),		// +X -Y
+		Vertex(Vector3f(0.f, -1.f, 0.f), Vector2f(0.f, 0.f)),		// Bottom
+		Vertex(Vector3f(-.7f, -.7f, 0.f), Vector2f(0.f, 0.f)),		// -X -Y
+		Vertex(Vector3f(-1.f, 0.f, 0.f), Vector2f(0.f, 0.f)),		// Left
+		Vertex(Vector3f(-.7f, .7f, 0.f), Vector2f(0.f, 0.f))		// -X +Y
 	};
 
 	glGenBuffers(1, &VBO);
@@ -229,17 +239,25 @@ static void CreateIndexBuffer()
 {
 	//List of Indices to draw
 	unsigned int Indices[] = {
-		// Left Paddle
+		// Left Paddle (12 Indices)
 		0, 3, 1,
 		1, 3, 2,
 		2, 3, 0,
 		0, 1, 2,
-		// Right Paddle
+		// Right Paddle (12 Indices)
 		4, 7, 5,
 		5, 7, 6,
 		6, 7, 4,
-		4, 5, 6
-		// Ball
+		4, 5, 6,
+		// Ball (24 Indices)
+		8, 9, 10,
+		8, 10, 11,
+		8, 11, 12,
+		8, 12, 13,
+		8, 13, 14,
+		8, 14, 15,
+		8, 15, 16,
+		8, 16, 9
 	};
 	//Generate Index Buffer
 	glGenBuffers(1, &IBO);
