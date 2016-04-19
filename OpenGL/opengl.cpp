@@ -94,7 +94,7 @@ static void RenderSceneCB()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	pTexture->Bind(GL_TEXTURE0);
 	//Draw the indices
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -207,11 +207,17 @@ static void InitializeGlutCallbacks()
 
 static void CreateVertexBuffer()
 {
-	Vertex Vertices[4] = {
-		Vertex(Vector3f(-1.f, 1.f, 0.f), Vector2f(0.5f, 0.5f)),
-		Vertex(Vector3f(1.f, 1.f, 0.f), Vector2f(0.5f, 0.f)),
-		Vertex(Vector3f(1.f, -1.f, 0.f), Vector2f(1.f, 0.f)),
-		Vertex(Vector3f(-1.f, -1.f, 0.f), Vector2f(0.5f, 1.f))
+	Vertex Vertices[8] = {
+		// Left Paddle
+		Vertex(Vector3f(-5.f, 3.f, 0.f), Vector2f(0.5f, 0.5f)),
+		Vertex(Vector3f(-4.5f, 3.f, 0.f), Vector2f(0.5f, 0.f)),
+		Vertex(Vector3f(-5.f, 1.5f, 0.f), Vector2f(1.f, 0.f)),
+		Vertex(Vector3f(-4.5f, 1.5f, 0.f), Vector2f(0.5f, 1.f)),
+		// Right Paddle
+		Vertex(Vector3f(5.f, -3.f, 0.f), Vector2f(0.5f, 0.5f)),
+		Vertex(Vector3f(4.5f, -3.f, 0.f), Vector2f(0.5f, 0.f)),
+		Vertex(Vector3f(5.f, -1.5f, 0.f), Vector2f(1.f, 0.f)),
+		Vertex(Vector3f(4.5f, -1.5f, 0.f), Vector2f(0.5f, 1.f))
 	};
 
 	glGenBuffers(1, &VBO);
@@ -223,10 +229,17 @@ static void CreateIndexBuffer()
 {
 	//List of Indices to draw
 	unsigned int Indices[] = {
+		// Left Paddle
 		0, 3, 1,
 		1, 3, 2,
 		2, 3, 0,
-		0, 1, 2
+		0, 1, 2,
+		// Right Paddle
+		4, 7, 5,
+		5, 7, 6,
+		6, 7, 4,
+		4, 5, 6
+		// Ball
 	};
 	//Generate Index Buffer
 	glGenBuffers(1, &IBO);
